@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>End of Shift Report — Novus Foods Plant 1730</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js" onerror="window._jspdfFailed=true"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" onerror="window._jspdfFailed=true"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=JetBrains+Mono:wght@400;500&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -137,6 +135,28 @@ body{font-family:var(--fb);background:var(--g100);color:var(--g800);min-height:1
 .bp{background:var(--brand);color:#fff}.bp:hover{background:var(--brand-m);box-shadow:0 4px 16px rgba(26,86,50,.25)}
 .toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(20px);padding:.65rem 1.3rem;border-radius:var(--rs);font-size:.85rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:999;box-shadow:var(--sh)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── PRINT STYLES ── */
+@media print {
+  body { background: white !important; font-size: 11pt; }
+  .app { padding: 0 !important; max-width: 100% !important; }
+  .hdr { border-radius: 0 !important; page-break-inside: avoid; }
+  .picker, .abar, .lc-toggle, .add-wip, .remove-btn, .toast { display: none !important; }
+  .body { box-shadow: none !important; border-radius: 0 !important; padding: .5rem !important; margin: 0 !important; }
+  .report-form { display: block !important; }
+  .sec { border: 1px solid #ccc !important; background: white !important; page-break-inside: avoid; margin-bottom: .5rem !important; }
+  .f input, .f textarea, .f select { border: none !important; background: transparent !important; box-shadow: none !important; padding: .1rem 0 !important; font-size: 10pt; }
+  .f label { font-size: 7pt !important; color: #666 !important; margin-bottom: .1rem !important; }
+  .f textarea { min-height: 0 !important; overflow: visible !important; resize: none; }
+  .lc { page-break-inside: avoid; }
+  .lc-head { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .lc-body { padding: .4rem .6rem .3rem !important; }
+  .lc-totals { background: white !important; border-top: 1px solid #ccc !important; }
+  .bi-card { border: 1px solid #eee !important; padding: .3rem .6rem !important; }
+  .wip-row { margin-bottom: .25rem; }
+  .hdr { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+}
+
 </style>
 </head>
 <body>
@@ -260,10 +280,7 @@ body{font-family:var(--fb);background:var(--g100);color:var(--g800);min-height:1
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1v9m0 0L5 7m3 3 3-3M2 12v1a2 2 0 002 2h8a2 2 0 002-2v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Download PDF
     </button>
-    <button type="button" class="btn bp" onclick="sendReport()">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M14.5 1.5l-6 13-2.5-5.5L.5 6.5l14-5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M14.5 1.5L6 9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-      Send Report
-    </button>
+
   </div>
 
 </div>
@@ -272,7 +289,7 @@ body{font-family:var(--fb);background:var(--g100);color:var(--g800);min-height:1
 (function(){
 'use strict';
 
-const RECIP=['mcaballero@novusfoods.com','hdiaz@novusfoods.com'];
+
 const LINES=['2A','PL1','MP4','PXM6','2E','PL2'];
 const BATCH_CATS=[
   'Total Pounds','Fresh and Organic Tomatoes','Aseptic Tomatoes',
@@ -411,228 +428,15 @@ function gatherBatching(){
 }
 
 // ═══ PDF BUILDER ═══
-function buildPDF(d){
-  const{jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'letter'}),
-    W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight(),M=44;
-  let y;
-  const brand=[26,86,50],gold=[184,134,11],dk=[17,24,39],gt=[100,116,139],
-    gl=[209,213,219],wh=[255,255,255],cream=[253,246,227],bg=[249,250,251];
-
-  // Header
-  doc.setFillColor(...brand);doc.rect(0,0,W,82,'F');
-  doc.setFillColor(...gold);doc.rect(0,82,W,2.5,'F');
-  // Logo — draw via canvas to avoid CORS issues with jsPDF
-  try{
-    const img=document.getElementById('logoImg');
-    if(img&&img.complete&&img.naturalWidth>0){
-      const cv=document.createElement('canvas');
-      cv.width=img.naturalWidth;cv.height=img.naturalHeight;
-      cv.getContext('2d').drawImage(img,0,0);
-      doc.addImage(cv.toDataURL('image/png'),'PNG',M,16,80,42);
-    }
-  }catch(e){console.warn('Logo skipped:',e)}
-  const tx=M+96;
-  doc.setFont('helvetica','bold');doc.setFontSize(18);doc.setTextColor(...wh);
-  doc.text(d.title,tx,38);
-  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(167,213,184);
-  doc.text('PLANT 1730  \u2022  BUENA PARK, CA',tx,52);
-  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(...wh);
-  doc.text(fD(d.sd),W-M,38,{align:'right'});
-  doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(167,213,184);
-  doc.text('SHIFT DATE',W-M,50,{align:'right'});
-
-  // Meta
-  y=98;doc.setFillColor(249,250,252);doc.setDrawColor(...gl);doc.setLineWidth(0.6);
-  doc.roundedRect(M,y,W-M*2,26,5,5,'FD');
-  const hc=d.type==='production'?`${d.hp||'—'} / ${d.hn||'—'}`:`${d.ha||'—'} / ${d.hn||'—'}`;
-  const cW=(W-M*2-20)/3;
-  [['SUPERVISOR',d.sup||'\u2014'],['SHIFT',`${fT(d.st)} \u2013 ${fT(d.et)}`],['HEADCOUNT',hc]].forEach(([k,v],i)=>{
-    const mx=M+10+i*cW;
-    doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(...gt);doc.text(k,mx,y+9);
-    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(...dk);doc.text(v,mx,y+19);
-  });
-  y+=36;
-
-  // Section helpers
-  function secH(label){
-    if(y>H-100){doc.addPage();y=40;}
-    y+=10;doc.setFillColor(...brand);doc.roundedRect(M,y,3.5,14,1.5,1.5,'F');
-    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(...dk);doc.text(label,M+11,y+10.5);
-    const lw=doc.getTextWidth(label);doc.setDrawColor(229,231,235);doc.setLineWidth(0.4);
-    doc.line(M+15+lw,y+7,W-M,y+7);y+=22;
-  }
-  function kvGrid(pairs,cols=3){
-    const cw=(W-M*2)/cols;
-    pairs.forEach(([k,v],i)=>{const col=i%cols,x=M+6+col*cw;if(col===0&&i>0)y+=20;
-      doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(...gt);doc.text(k.toUpperCase(),x,y);
-      doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(...dk);doc.text(String(v??'\u2014'),x,y+11);});y+=20;
-  }
-  function notesBlock(label,text){
-    if(!text)return;const lines=doc.splitTextToSize(text,W-M*2-80);const bh=Math.max(16,lines.length*11+6);
-    if(y+bh>H-40){doc.addPage();y=40;}
-    doc.setFillColor(243,244,246);doc.roundedRect(M+4,y-2,W-M*2-8,bh,3,3,'F');
-    doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(...gt);doc.text(label.toUpperCase(),M+10,y+8);
-    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...dk);doc.text(lines,M+72,y+8);y+=bh+6;
-  }
-
-  // Safety (shared)
-  secH('Safety');
-  kvGrid([['Unsafe Conditions',d.uc],['Near Misses',d.nm],['First Aid',d.fa]]);
-  notesBlock('Comments',d.sc);
-
-  if(d.type==='production'){
-    // Batching orders
-    secH('Batching');kvGrid([['Orders Open',d.bo],['Orders Completed',d.bc]],2);
-    // Materials
-    secH('Materials');notesBlock('Shortages',d.sh||'None');notesBlock('STOs',d.sto||'None');
-    // Attendance
-    secH('Attendance');kvGrid([['Absences',d.ab],['HC Needed',d.hn],['HC Present',d.hp]]);
-    // SAP
-    secH('SAP');kvGrid([['Completed',d.sapC],['Open',d.sapO],['Reason',d.sapR||'\u2014']]);
-    // Trainings & Quality
-    secH('Trainings & Quality');notesBlock('Trainings',d.tr||'None');notesBlock('Quality',d.qa||'None');
-    // Production Lines
-    secH('Production Line Performance');
-    doc.autoTable({startY:y,margin:{left:M,right:M},
-      head:[['Line','SOT','Late Start','Mech Down','CIL','C/O','Wait','Total Lost','Planned','Comp.','Comments']],
-      body:d.lines.map(l=>[l.line,l.sot||'\u2014',l.ls||'0',l.md||'0',l.cil||'0',l.co||'0',l.wt||'0',l.tl||'0',l.pl||'\u2014',l.cp||'\u2014',l.cm||'']),
-      styles:{fontSize:7.5,cellPadding:5,lineColor:gl,lineWidth:0.4,textColor:dk,font:'helvetica'},
-      headStyles:{fillColor:brand,textColor:wh,fontStyle:'bold',fontSize:6.5,halign:'center'},
-      columnStyles:{0:{fontStyle:'bold',halign:'center',cellWidth:34,textColor:brand},1:{halign:'center',cellWidth:28},7:{fontStyle:'bold',fillColor:cream,textColor:gold},10:{halign:'left',cellWidth:130}},
-      alternateRowStyles:{fillColor:bg},
-      didParseCell:h=>{if(h.section==='body'&&h.column.index>=1&&h.column.index<=9)h.cell.styles.halign='center'}
-    });
-  } else {
-    // WIP Priority
-    if(d.wip&&d.wip.length>0){
-      secH('WIP Priority');
-      doc.autoTable({startY:y,margin:{left:M,right:M},
-        head:[['Item #','Description','Comments']],
-        body:d.wip.map(w=>[w.item||'\u2014',w.desc||'\u2014',w.comment||'']),
-        styles:{fontSize:8,cellPadding:4.5,lineColor:gl,lineWidth:0.4,textColor:dk,font:'helvetica'},
-        headStyles:{fillColor:brand,textColor:wh,fontStyle:'bold',fontSize:7,halign:'center'},
-        columnStyles:{0:{cellWidth:60,halign:'center'}},alternateRowStyles:{fillColor:bg}
-      });
-      y=doc.lastAutoTable.finalY+6;
-    }
-    // Batching Information
-    secH('Batching Information');
-    doc.autoTable({startY:y,margin:{left:M,right:M},
-      head:[['Category','Planned','Actual','% Complete']],
-      body:d.batching.map(b=>[b.category,b.planned||'\u2014',b.actual||'\u2014',b.pct]),
-      styles:{fontSize:7.5,cellPadding:5,lineColor:gl,lineWidth:0.4,textColor:dk,font:'helvetica'},
-      headStyles:{fillColor:brand,textColor:wh,fontStyle:'bold',fontSize:7,halign:'center'},
-      columnStyles:{0:{halign:'left',fontStyle:'bold'},1:{halign:'center',cellWidth:65},2:{halign:'center',cellWidth:65},3:{halign:'center',cellWidth:70,fontStyle:'bold'}},
-      alternateRowStyles:{fillColor:bg},
-      didParseCell:h=>{if(h.section==='body'&&h.column.index===3){const v=parseInt(h.cell.raw);if(!isNaN(v)){h.cell.styles.textColor=v>=90?brand:v>=70?gold:[220,38,38];h.cell.styles.fillColor=v>=90?[232,245,238]:v>=70?cream:[254,242,242]}}}
-    });
-    y=doc.lastAutoTable.finalY+6;
-    // Attendance
-    secH('Attendance');kvGrid([['Headcount Needed',d.hn],['Headcount Actual',d.ha],['Absences',d.ab]]);
-    // Additional Comments
-    notesBlock('Additional Comments',d.comments);
-  }
-
-  // Footer
-  const pH=doc.internal.pageSize.getHeight();
-  doc.setFillColor(...brand);doc.rect(0,pH-28,W,28,'F');
-  doc.setFillColor(...gold);doc.rect(0,pH-29.5,W,1.5,'F');
-  doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(167,213,184);
-  doc.text(`Generated ${new Date().toLocaleString()}`,M,pH-10);
-  doc.text('Novus Foods Plant 1730 Ops Hub',W-M,pH-10,{align:'right'});
-  return doc;
-}
-
-// ═══ ACTIONS ═══
 function getData(){return activeReport==='production'?gatherProduction():gatherBatching()}
-function getFilename(d){return(d.type==='production'?'Mfg':'Batching')+`_Shift_Report_${d.sd||'undated'}.pdf`}
 
 window.downloadPDF=function(){
   const d=getData();
   if(!d.sup){showToast('Enter the supervisor name first.','w');return}
-  if(window._jspdfFailed||!window.jspdf){
-    showToast('PDF library failed to load. Check your internet connection.','w');
-    return;
-  }
-  try{
-    buildPDF(d).save(getFilename(d));
-    showToast('PDF downloaded');
-  }catch(e){
-    console.error('PDF error:',e);
-    showToast('PDF error: '+e.message,'w');
-  }
+  // Show only the active report, then print
+  window.print();
 };
 
-function buildEmailBody(d){
-  if(d.type==='production'){
-    const lines=d.lines.map(l=>`  ${l.line}: SOT=${l.sot||'—'} | Late=${l.ls||0}min | Mech=${l.md||0}min | CIL=${l.cil||0}min | C/O=${l.co||0}min | Wait=${l.wt||0}min | TOTAL LOST=${l.tl||0}min | Planned=${l.pl||'—'} | Completed=${l.cp||'—'}${l.cm?' | Notes: '+l.cm:''}`).join('\r\n');
-    return [
-      `${d.title.toUpperCase()}`,
-      `Date: ${fD(d.sd)}  |  Shift: ${fT(d.st)} – ${fT(d.et)}  |  Supervisor: ${d.sup}`,
-      ``,
-      `SAFETY`,
-      `  Unsafe Conditions: ${d.uc}  |  Near Misses: ${d.nm}  |  First Aid: ${d.fa}`,
-      d.sc?`  Comments: ${d.sc}`:'',
-      ``,
-      `BATCHING`,
-      `  Orders Open: ${d.bo}  |  Orders Completed: ${d.bc}`,
-      ``,
-      `MATERIALS`,
-      `  Shortages: ${d.sh||'None'}`,
-      `  STOs: ${d.sto||'None'}`,
-      ``,
-      `ATTENDANCE`,
-      `  Absences: ${d.ab}  |  Headcount Needed: ${d.hn}  |  Headcount Present: ${d.hp}`,
-      ``,
-      `SAP`,
-      `  Completed: ${d.sapC}  |  Open: ${d.sapO}${d.sapR?'  |  Reason: '+d.sapR:''}`,
-      ``,
-      `TRAININGS & QUALITY`,
-      `  Trainings: ${d.tr||'None'}`,
-      `  Quality: ${d.qa||'None'}`,
-      ``,
-      `PRODUCTION LINE PERFORMANCE`,
-      lines,
-      ``,
-      `— Sent via Plant 1730 Ops Hub`
-    ].filter(l=>l!==null).join('\r\n');
-  } else {
-    const wipLines=d.wip.length>0
-      ? d.wip.map(w=>`  ${w.item||'—'}  ${w.desc||'—'}${w.comment?'  // '+w.comment:''}`).join('\r\n')
-      : '  None';
-    const biLines=d.batching.map(b=>`  ${b.category}: Planned=${b.planned||'—'} | Actual=${b.actual||'—'} | ${b.pct}`).join('\r\n');
-    return [
-      `${d.title.toUpperCase()}`,
-      `Date: ${fD(d.sd)}  |  Shift: ${fT(d.st)} – ${fT(d.et)}  |  Supervisor: ${d.sup}`,
-      ``,
-      `SAFETY`,
-      `  Unsafe Conditions: ${d.uc}  |  Near Misses: ${d.nm}  |  First Aid: ${d.fa}`,
-      d.sc?`  Comments: ${d.sc}`:'',
-      ``,
-      `WIP PRIORITY`,
-      wipLines,
-      ``,
-      `BATCHING INFORMATION`,
-      biLines,
-      ``,
-      `ATTENDANCE`,
-      `  Headcount Needed: ${d.hn}  |  Headcount Actual: ${d.ha}  |  Absences: ${d.ab}`,
-      ``,
-      d.comments?`ADDITIONAL COMMENTS\r\n  ${d.comments}`:null,
-      ``,
-      `— Sent via Plant 1730 Ops Hub`
-    ].filter(l=>l!==null).join('\r\n');
-  }
-}
-
-window.sendReport=function(){
-  const d=getData();
-  if(!d.sup){showToast('Enter the supervisor name first.','w');return}
-  const subject=encodeURIComponent(`${d.title} — ${fD(d.sd)} (${d.sup})`);
-  const body=encodeURIComponent(buildEmailBody(d));
-  window.location.href=`mailto:${RECIP.join(',')}?subject=${subject}&body=${body}`;
-};
 
 function showToast(m,w){const t=document.getElementById('toast');t.textContent=m;
   t.style.background=w?'#fdf6e3':'#e8f5ee';t.style.color=w?'#92400e':'#15492a';
