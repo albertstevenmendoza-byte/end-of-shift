@@ -272,7 +272,7 @@ body{font-family:var(--fb);background:var(--g100);color:var(--g800);min-height:1
 (function(){
 'use strict';
 
-const RECIP=['mcaballero@novusfoods.com','hdiaz@novusfoods.com','amendoza@novusfoods.com'];
+const RECIP=['mcaballero@novusfoods.com','hdiaz@novusfoods.com'];
 const LINES=['2A','PL1','MP4','PXM6','2E','PL2'];
 const BATCH_CATS=[
   'Total Pounds','Fresh and Organic Tomatoes','Aseptic Tomatoes',
@@ -543,13 +543,35 @@ window.downloadPDF=function(){
   const d=getData();if(!d.sup){showToast('Enter the supervisor name first.','w');return}
   buildPDF(d).save(getFilename(d));showToast('PDF downloaded')};
 
-window.sendReport=function(){
-  const d=getData();if(!d.sup){showToast('Enter the supervisor name first.','w');return}
-  buildPDF(d).save(getFilename(d));
-  const subj=encodeURIComponent(`${d.title} \u2014 ${fD(d.sd)} (${d.sup})`),
-    body=encodeURIComponent(`Hi,\n\nPlease find the ${d.title} for ${fD(d.sd)} attached.\n\nSupervisor: ${d.sup}\nShift: ${fT(d.st)} \u2013 ${fT(d.et)}\n\n\u2014 Sent via Plant 1730 Ops Hub`);
-  window.open(`mailto:${RECIP.join(',')}?subject=${subj}&body=${body}`,'_self');
-  showToast('PDF downloaded \u2014 attach it to the email that opened.')};
+window.sendReport=async function(){
+  const d=getData();
+  if(!d.sup){showToast('Enter the supervisor name first.','w');return}
+
+  const doc=buildPDF(d);
+  const fname=getFilename(d);
+  const pdfBlob=doc.output('blob');
+  const pdfFile=new File([pdfBlob],fname,{type:'application/pdf'});
+
+  const subject=`${d.title} \u2014 ${fD(d.sd)} (${d.sup})`;
+  const body=`Hi,\n\nPlease find the ${d.title} for ${fD(d.sd)} attached.\n\nSupervisor: ${d.sup}\nShift: ${fT(d.st)} \u2013 ${fT(d.et)}\n\n\u2014 Sent via Plant 1730 Ops Hub`;
+
+  // Try native share (mobile — PDF is already attached)
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[pdfFile]})){
+    try{
+      await navigator.share({title:subject,text:body,files:[pdfFile]});
+      showToast('Report shared!');
+      return;
+    }catch(e){if(e.name!=='AbortError')console.warn('Share failed:',e)}
+  }
+
+  // Fallback (desktop) — download PDF, open Outlook with recipients pre-filled
+  doc.save(fname);
+  const owaSub=encodeURIComponent(subject);
+  const owaBody=encodeURIComponent(body);
+  const owaTo=RECIP.join(';');
+  window.open(`https://outlook.office.com/mail/deeplink/compose?to=${owaTo}&subject=${owaSub}&body=${owaBody}`,'_blank');
+  showToast('PDF downloaded \u2014 attach it in the Outlook window that opened.');
+};
 
 function showToast(m,w){const t=document.getElementById('toast');t.textContent=m;
   t.style.background=w?'#fdf6e3':'#e8f5ee';t.style.color=w?'#92400e':'#15492a';
