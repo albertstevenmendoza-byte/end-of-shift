@@ -532,6 +532,7 @@ function gatherBatching(){
 function barColor(p){return p>=90?'#1a5632':p>=70?'#b8860b':'#dc2626'}
 function sotBadge(v){return v==='Yes'?'<span class="badge badge-green">Yes</span>':v==='No'?'<span class="badge badge-red">No</span>':'<span class="badge badge-gray">—</span>'}
 function pctColor(p){return p>=90?'green':p>=70?'amber':'red'}
+function getData(){return activeReport==='production'?gatherProduction():gatherBatching()}
 
 function buildReport(d){
   const logoSrc=document.getElementById('logoImg')?.src||'image.png';
