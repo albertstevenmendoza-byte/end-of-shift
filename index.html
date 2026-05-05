@@ -37,7 +37,7 @@ body{font-family:var(--fb);background:var(--g100);color:var(--g800);min-height:1
 .picker button:hover:not(.active){background:var(--g100);color:var(--g700)}
 
 /* ── FORM BODY ── */
-.body{background:var(--white);border-radius:0 0 var(--r) var(--r);box-shadow:var(--sh);padding:1.5rem;margin-bottom:1.5rem}
+.body{background:var(--white);border-radius:0 0 var(--r) var(--r);box-shadow:var(--sh);padding:1.5rem;margin-bottom:1.5rem;overflow:hidden}
 .report-form{display:none}
 .report-form.visible{display:block}
 
@@ -48,11 +48,34 @@ body{font-family:var(--fb);background:var(--g100);color:var(--g800);min-height:1
 .sl .d{width:7px;height:7px;border-radius:50%;background:var(--brand-m)}
 .fr{display:grid;gap:.85rem;margin-bottom:.85rem}
 .fr.c2{grid-template-columns:1fr 1fr}.fr.c3{grid-template-columns:1fr 1fr 1fr}.fr.c4{grid-template-columns:1fr 1fr 1fr 1fr}
-@media(max-width:600px){.fr.c2,.fr.c3,.fr.c4{grid-template-columns:1fr}.app{padding:1rem .75rem}.body{padding:1rem}.abar{flex-direction:column}.btn{justify-content:center}.hdr{flex-direction:column;text-align:center}.picker button{font-size:.78rem;padding:.7rem .5rem}}
+@media(max-width:600px){
+  .app{padding:.75rem .5rem 3rem}
+  .body{padding:1rem .75rem}
+  .hdr{flex-direction:column;text-align:center;padding:1.2rem 1rem}
+  .hdr img{height:38px}
+  .hdr-text h1{font-size:1.15rem}
+  .picker button{font-size:.78rem;padding:.7rem .5rem}
+  .sec{padding:1rem .85rem .65rem}
+  .fr.c2{grid-template-columns:1fr 1fr}
+  .fr.c3{grid-template-columns:1fr}
+  .fr.c4{grid-template-columns:1fr 1fr}
+  .f input,.f textarea,.f select{font-size:16px;padding:.5rem .6rem}
+  .f input[type=date],.f input[type=time]{min-width:0;width:100%;max-width:100%}
+  .abar{flex-direction:column}
+  .btn{justify-content:center;padding:.75rem 1rem}
+  .wip-row{grid-template-columns:60px 1fr 1fr 28px;gap:.35rem}
+  .bi-card{grid-template-columns:1fr 1fr;row-gap:.4rem}
+  .bi-card .bi-name{grid-column:1/-1}
+}
+@media(max-width:400px){
+  .fr.c2,.fr.c4{grid-template-columns:1fr}
+  .wip-row{grid-template-columns:50px 1fr 28px}
+  .wip-row .f:nth-child(3){grid-column:1/-2}
+}
 
 /* ── FIELDS ── */
 .f label{display:block;font-size:.7rem;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.35rem}
-.f input,.f textarea,.f select{width:100%;background:var(--white);border:1px solid var(--g300);border-radius:var(--rs);color:var(--g800);font-family:var(--fb);font-size:.9rem;padding:.55rem .7rem;transition:border-color .15s,box-shadow .15s;outline:none}
+.f input,.f textarea,.f select{width:100%;max-width:100%;min-width:0;background:var(--white);border:1px solid var(--g300);border-radius:var(--rs);color:var(--g800);font-family:var(--fb);font-size:.9rem;padding:.55rem .7rem;transition:border-color .15s,box-shadow .15s;outline:none;-webkit-appearance:none}
 .f input:focus,.f textarea:focus,.f select:focus{border-color:var(--brand-m);box-shadow:0 0 0 3px var(--brand-l)}
 .f textarea{resize:vertical;min-height:56px}
 .f input::placeholder,.f textarea::placeholder{color:var(--g400)}
@@ -73,7 +96,8 @@ body{font-family:var(--fb);background:var(--g100);color:var(--g800);min-height:1
 .lc-row{display:grid;gap:.65rem;margin-bottom:.65rem}
 .lc-row.r6{grid-template-columns:repeat(6,1fr)}
 .lc-row.r3{grid-template-columns:1fr 1fr 1fr}
-@media(max-width:600px){.lc-row.r6{grid-template-columns:repeat(3,1fr)}.lc-row.r3{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.lc-row.r6{grid-template-columns:repeat(3,1fr)}.lc-row.r3{grid-template-columns:1fr 1fr 1fr}.lc .f input,.lc .f select{font-size:16px}.lc-totals{flex-wrap:wrap;gap:.75rem}}
+@media(max-width:400px){.lc-row.r6{grid-template-columns:repeat(2,1fr)}.lc-row.r3{grid-template-columns:1fr}}
 .lc .f input,.lc .f select{font-size:.85rem;padding:.45rem .55rem}
 .lc .f input[type=number]{font-family:var(--fm);text-align:center}
 .lc-totals{display:flex;align-items:center;gap:1.5rem;padding:.55rem .75rem;background:var(--g50);border-top:1px solid var(--g200);font-size:.82rem}
@@ -95,7 +119,7 @@ body{font-family:var(--fb);background:var(--g100);color:var(--g800);min-height:1
 /* ── BATCHING INFO CARDS ── */
 .bi-list{display:flex;flex-direction:column;gap:.6rem}
 .bi-card{background:var(--white);border:1px solid var(--g200);border-radius:var(--rs);padding:.7rem .9rem;display:grid;grid-template-columns:1fr 100px 100px 80px;gap:.6rem;align-items:end}
-@media(max-width:600px){.bi-card{grid-template-columns:1fr 1fr}.bi-card .bi-name{grid-column:1/-1}}
+@media(max-width:600px){.bi-card{grid-template-columns:1fr 1fr;row-gap:.4rem}.bi-card .bi-name{grid-column:1/-1}.bi-hdr{display:none!important}.bi-ml{display:block}.bi-card .f input{font-size:16px}}
 .bi-card .bi-name{font-size:.82rem;font-weight:600;color:var(--g700);align-self:center}
 .bi-card .f input{text-align:center;font-size:.85rem;padding:.4rem .4rem}
 .pct{font-family:var(--fm);font-weight:700;font-size:.95rem;text-align:center;padding:.4rem 0;align-self:center;border-radius:4px}
@@ -103,6 +127,7 @@ body{font-family:var(--fb);background:var(--g100);color:var(--g800);min-height:1
 .pct-warn{color:var(--accent);background:var(--accent-l)}
 .pct-bad{color:#dc2626;background:#fef2f2}
 .pct-na{color:var(--g400)}
+.bi-ml{display:none}
 
 /* ── ACTIONS ── */
 .abar{display:flex;gap:.85rem;justify-content:flex-end;padding:0 .5rem}
@@ -211,7 +236,7 @@ body{font-family:var(--fb);background:var(--g100);color:var(--g800);min-height:1
       <button type="button" class="add-wip" id="addWip">+ Add WIP Item</button>
     </div>
     <div class="sec"><div class="sl"><span class="d"></span>Batching Information</div>
-      <div style="display:grid;grid-template-columns:1fr 100px 100px 80px;gap:.6rem;padding:0 .9rem .4rem;font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--g500)">
+      <div class="bi-hdr" style="display:grid;grid-template-columns:1fr 100px 100px 80px;gap:.6rem;padding:0 .9rem .4rem;font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--g500)">
         <span>Category</span><span style="text-align:center">Planned</span><span style="text-align:center">Actual</span><span style="text-align:center">%</span>
       </div>
       <div class="bi-list" id="biList"></div>
@@ -340,8 +365,8 @@ const biList=document.getElementById('biList');
 BATCH_CATS.forEach((cat,i)=>{
   const card=document.createElement('div');card.className='bi-card';
   card.innerHTML=`<div class="bi-name">${cat}</div>
-    <div class="f"><input type="number" data-bi="${i}" data-bf="planned" min="0" placeholder="0"></div>
-    <div class="f"><input type="number" data-bi="${i}" data-bf="actual" min="0" placeholder="0"></div>
+    <div class="f"><label class="bi-ml">Planned</label><input type="number" data-bi="${i}" data-bf="planned" min="0" placeholder="Planned"></div>
+    <div class="f"><label class="bi-ml">Actual</label><input type="number" data-bi="${i}" data-bf="actual" min="0" placeholder="Actual"></div>
     <div class="pct pct-na" id="pct-${i}">—</div>`;
   biList.appendChild(card);
 });
