@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>End of Shift Report — Novus Foods Plant 1730</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js" onerror="window._jspdfFailed=true"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" onerror="window._jspdfFailed=true"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=JetBrains+Mono:wght@400;500&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -143,7 +143,7 @@ body{font-family:var(--fb);background:var(--g100);color:var(--g800);min-height:1
 <div class="app">
 
   <header class="hdr">
-    <img src="image.png" id="logoImg" alt="Novus Foods">
+    <img src="image.png" id="logoImg" alt="Novus Foods" crossorigin="anonymous">
     <div class="hdr-text">
       <h1>End of Shift Report</h1>
       <div class="sub">Plant 1730 • Buena Park, CA</div>
@@ -422,7 +422,16 @@ function buildPDF(d){
   // Header
   doc.setFillColor(...brand);doc.rect(0,0,W,82,'F');
   doc.setFillColor(...gold);doc.rect(0,82,W,2.5,'F');
-  try{doc.addImage(document.getElementById('logoImg'),'PNG',M,16,80,42)}catch(e){}
+  // Logo — draw via canvas to avoid CORS issues with jsPDF
+  try{
+    const img=document.getElementById('logoImg');
+    if(img&&img.complete&&img.naturalWidth>0){
+      const cv=document.createElement('canvas');
+      cv.width=img.naturalWidth;cv.height=img.naturalHeight;
+      cv.getContext('2d').drawImage(img,0,0);
+      doc.addImage(cv.toDataURL('image/png'),'PNG',M,16,80,42);
+    }
+  }catch(e){console.warn('Logo skipped:',e)}
   const tx=M+96;
   doc.setFont('helvetica','bold');doc.setFontSize(18);doc.setTextColor(...wh);
   doc.text(d.title,tx,38);
@@ -540,8 +549,20 @@ function getData(){return activeReport==='production'?gatherProduction():gatherB
 function getFilename(d){return(d.type==='production'?'Mfg':'Batching')+`_Shift_Report_${d.sd||'undated'}.pdf`}
 
 window.downloadPDF=function(){
-  const d=getData();if(!d.sup){showToast('Enter the supervisor name first.','w');return}
-  buildPDF(d).save(getFilename(d));showToast('PDF downloaded')};
+  const d=getData();
+  if(!d.sup){showToast('Enter the supervisor name first.','w');return}
+  if(window._jspdfFailed||!window.jspdf){
+    showToast('PDF library failed to load. Check your internet connection.','w');
+    return;
+  }
+  try{
+    buildPDF(d).save(getFilename(d));
+    showToast('PDF downloaded');
+  }catch(e){
+    console.error('PDF error:',e);
+    showToast('PDF error: '+e.message,'w');
+  }
+};
 
 function buildEmailBody(d){
   if(d.type==='production'){
